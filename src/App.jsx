@@ -88,6 +88,39 @@ function Poster({ movie, className }) {
   );
 }
 
+function TiltPoster({ movie }) {
+  const ref = useRef(null);
+
+  function handleMove(e) {
+    if (e.pointerType === 'touch') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const el = ref.current;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    el.style.setProperty('--rx', `${(0.5 - y) * 18}deg`);
+    el.style.setProperty('--ry', `${(x - 0.5) * 18}deg`);
+    el.style.setProperty('--tx', `${(x - 0.5) * 14}px`);
+    el.style.setProperty('--ty', `${(y - 0.5) * 14}px`);
+    el.style.setProperty('--gx', `${x * 100}%`);
+    el.style.setProperty('--gy', `${y * 100}%`);
+    el.classList.add('is-hovering');
+  }
+
+  function handleLeave() {
+    const el = ref.current;
+    ['--rx', '--ry', '--tx', '--ty'].forEach((v) => el.style.removeProperty(v));
+    el.classList.remove('is-hovering');
+  }
+
+  return (
+    <div ref={ref} className="tilt" onPointerMove={handleMove} onPointerLeave={handleLeave}>
+      <Poster movie={movie} className="hero-poster-img" />
+      <div className="tilt-glare" />
+    </div>
+  );
+}
+
 function Row({ title, items, onSelect, ranked, sectionRef }) {
   if (items.length === 0) return null;
   return (
@@ -248,7 +281,7 @@ export default function App() {
 
         {movie && (
           <div className="hero-poster" key={movie.title}>
-            <Poster movie={movie} className="hero-poster-img" />
+            <TiltPoster movie={movie} />
           </div>
         )}
 
